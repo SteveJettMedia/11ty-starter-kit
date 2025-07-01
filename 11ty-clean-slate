@@ -205,23 +205,3 @@ title: Home
 </body>
 </html>
 EOF
-
-# Install dependencies
-echo "📥 Installing dependencies..."
-npm install
-
-echo "
-✅ Setup complete!
-
-Next steps:
- cd $PROJECT_NAME
- npm start
-
-Your site will be at http://localhost:8080
-
-Commands:
- npm start    - Development mode
- npm run build - Production build
- npm run lint  - Check code
- npm run format - Fix formatting
-"
