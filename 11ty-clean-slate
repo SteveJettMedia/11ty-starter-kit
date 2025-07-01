@@ -1,0 +1,227 @@
+#!/bin/bash
+
+# Eleventy Starter Setup Script
+# Usage: ./setup-eleventy.sh [project-name]
+
+PROJECT_NAME=${1:-eleventy-starter}
+
+echo "🚀 Setting up Eleventy project: $PROJECT_NAME"
+
+# Create project directory
+mkdir -p "$PROJECT_NAME" && cd "$PROJECT_NAME"
+
+# Create folder structure
+echo "📁 Creating folder structure..."
+mkdir -p src/{_includes,_layouts,_data,assets/{css,js,images}}
+
+# Create package.json
+echo "📦 Creating package.json..."
+cat > package.json << 'EOF'
+{
+ "name": "eleventy-starter",
+ "version": "1.0.0",
+ "description": "Eleventy starter with Nunjucks, Rollup, and linting",
+ "scripts": {
+   "start": "npm-run-all --parallel dev:*",
+   "build": "npm-run-all build:11ty build:rollup",
+   "dev:11ty": "eleventy --serve --watch",
+   "dev:rollup": "rollup -c -w",
+   "build:11ty": "eleventy",
+   "build:rollup": "rollup -c",
+   "lint": "npm-run-all lint:*",
+   "lint:js": "eslint src/**/*.js",
+   "lint:format": "prettier --check .",
+   "format": "prettier --write .",
+   "clean": "rimraf _site"
+ },
+ "devDependencies": {
+   "@11ty/eleventy": "^2.0.1",
+   "@rollup/plugin-node-resolve": "^15.2.3",
+   "@rollup/plugin-terser": "^0.4.4",
+   "eslint": "^8.57.0",
+   "eslint-config-prettier": "^9.1.0",
+   "npm-run-all": "^4.1.5",
+   "prettier": "^3.2.5",
+   "prettier-plugin-jinja-template": "^1.3.2",
+   "rimraf": "^5.0.5",
+   "rollup": "^4.12.0"
+ }
+}
+EOF
+
+# Create .eleventy.js
+echo "⚙️  Creating Eleventy config..."
+cat > .eleventy.js << 'EOF'
+module.exports = function(eleventyConfig) {
+ // Pass through CSS
+ eleventyConfig.addPassthroughCopy("src/assets/css");
+ eleventyConfig.addPassthroughCopy("src/assets/images");
+ 
+ // Watch CSS for changes
+ eleventyConfig.addWatchTarget("src/assets/css/");
+ 
+ // Ignore files
+ eleventyConfig.ignores.add("README.md");
+ eleventyConfig.ignores.add("node_modules/**/*");
+ 
+ return {
+   dir: {
+     input: "src",
+     output: "_site",
+     includes: "_includes",
+     layouts: "_layouts",
+     data: "_data"
+   },
+   templateFormats: ["njk", "md", "html"],
+   htmlTemplateEngine: "njk",
+   markdownTemplateEngine: "njk"
+ };
+};
+EOF
+
+# Create rollup.config.js
+echo "📦 Creating Rollup config..."
+cat > rollup.config.js << 'EOF'
+import { nodeResolve } from '@rollup/plugin-node-resolve';
+import terser from '@rollup/plugin-terser';
+
+export default {
+ input: 'src/assets/js/main.js',
+ output: {
+   file: '_site/assets/js/bundle.js',
+   format: 'iife',
+   sourcemap: true
+ },
+ plugins: [
+   nodeResolve(),
+   terser()
+ ],
+ watch: {
+   clearScreen: false
+ }
+};
+EOF
+
+# Create .eslintrc.js
+echo "🔍 Creating ESLint config..."
+cat > .eslintrc.js << 'EOF'
+module.exports = {
+ env: {
+   browser: true,
+   es2021: true,
+   node: true
+ },
+ extends: [
+   'eslint:recommended',
+   'prettier'
+ ],
+ parserOptions: {
+   ecmaVersion: 'latest',
+   sourceType: 'module'
+ },
+ rules: {
+   'no-unused-vars': 'warn',
+   'no-console': 'off'
+ }
+};
+EOF
+
+# Create .prettierrc
+echo "✨ Creating Prettier config..."
+cat > .prettierrc << 'EOF'
+{
+ "semi": true,
+ "singleQuote": true,
+ "tabWidth": 2,
+ "printWidth": 80,
+ "plugins": ["prettier-plugin-jinja-template"],
+ "overrides": [
+   {
+     "files": "*.njk",
+     "options": {
+       "parser": "jinja-template"
+     }
+   }
+ ]
+}
+EOF
+
+# Create .gitignore
+echo "🙈 Creating .gitignore..."
+cat > .gitignore << 'EOF'
+node_modules/
+_site/
+.DS_Store
+*.log
+.env
+EOF
+
+# Create .prettierignore
+echo "🙈 Creating .prettierignore..."
+cat > .prettierignore << 'EOF'
+node_modules/
+_site/
+package-lock.json
+EOF
+
+# Create starter files
+echo "📝 Creating starter files..."
+echo "console.log('Hello from Eleventy!');" > src/assets/js/main.js
+cat > src/assets/css/style.css << 'EOF'
+/* CSS Reset */
+* {
+ margin: 0;
+ padding: 0;
+ box-sizing: border-box;
+}
+
+body {
+ font-family: system-ui, -apple-system, sans-serif;
+ line-height: 1.5;
+ padding: 2rem;
+}
+
+h1 {
+ color: #333;
+}
+EOF
+
+cat > src/index.njk << 'EOF'
+---
+title: Home
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>{{ title }} | Eleventy Starter</title>
+ <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+ <h1>Welcome to Eleventy!</h1>
+ <p>Edit <code>src/index.njk</code> to get started.</p>
+ <script src="/assets/js/bundle.js"></script>
+</body>
+</html>
+EOF
+
+# Install dependencies
+echo "📥 Installing dependencies..."
+npm install
+
+echo "
+✅ Setup complete!
+
+Next steps:
+ cd $PROJECT_NAME
+ npm start
+
+Your site will be at http://localhost:8080
+
+Commands:
+ npm start    - Development mode
+ npm run build - Production build
+ npm run lint  - Check code
+ npm run format - Fix formatting
+"
