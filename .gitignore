@@ -31,6 +31,7 @@ Thumbs.db
 !.vscode/launch.json
 
 # Optional: lock out personal or temp config
+*.code-workspace
 .vscode/*.code-workspace
 .vscode/*.history/
 .vscode/*.extensions.json
